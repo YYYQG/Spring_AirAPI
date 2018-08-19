@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+<head>
+<meta charset="utf-8">
+</head>
+<body style="height: 100%; margin: 0">
+	<div id="container" style="height: 100%"></div>
+	<script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/echarts.min.js"></script>
+	<!--  <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts-gl/echarts-gl.min.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts-stat/ecStat.min.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/extension/dataTool.min.js"></script>-->
+	<script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/map/js/china.js"></script>
+	<script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/map/js/world.js"></script>
+	<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=ZUONbpqGBsYGXNIYHicvbAbM"></script>
+	<!--<script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/echarts/extension/bmap.min.js"></script>
+       <script type="text/javascript" src="http://echarts.baidu.com/gallery/vendors/simplex.js"></script>-->
+	<script src="https://cdn.jsdelivr.net/npm/axios@0.12.0/dist/axios.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+	<script type="text/javascript">
+     
+var dom = document.getElementById("container");
+var myChart = echarts.init(dom);
+var data = null;
+var app = {};
+option = null;
+option = {
+	    backgroundColor: '#404a59',
+	    title: {
+	        text: '全国主要城市空气质量',
+	        subtext: 'data from PM25.in',
+	        sublink: 'http://www.pm25.in',
+	        left: 'center',
+	        textStyle: {
+	            color: '#fff'
+	        }
+	    },
+	    tooltip : {
+	        trigger: 'item'
+	    },
+	    legend: {
+	        orient: 'vertical',
+	        y: 'bottom',
+	        x:'right',
+	        data:['pm2.5'],
+	        textStyle: {
+	            color: '#fff'
+	        }
+	    },
+	    geo: {
+	        map: 'china',
+	        label: {
+	            emphasis: {
+	                show: false
+	            }
+	        },
+	        roam: true,
+	        itemStyle: {
+	            normal: {
+	                areaColor: '#323c48',
+	                borderColor: '#111'
+	            },
+	            emphasis: {
+	                areaColor: '#2a333d'
+	            }
+	        }
+	    },
+	    series : [
+	        {
+	            name: 'pm2.5',
+	            type: 'scatter',
+	            coordinateSystem: 'geo',
+	            data: data,
+	            symbolSize: function (val) {
+	                return val[2];
+	            },
+	            label: {
+	                normal: {
+	                    formatter: '{b}',
+	                    position: 'right',
+	                    show: false
+	                },
+	                emphasis: {
+	                    show: true
+	                }
+	            },
+	            itemStyle: {
+	                normal: {
+	                    color: '#ddb926'
+	                }
+	            },
+	            animationDelayUpdate: function(idx) {
+	                return idx * 100;
+	            }
+	        },
+	        {
+	            name: 'Top 5',
+	            type: 'effectScatter',
+	            coordinateSystem: 'geo',
+	            data: [],
+	            symbolSize: function (val) {
+	                return val[2];
+	            },
+	            showEffectOn: 'render',
+	            rippleEffect: {
+	                brushType: 'stroke'
+	            },
+	            hoverAnimation: true,
+	            label: {
+	                normal: {
+	                    formatter: '{b}',
+	                    position: 'right',
+	                    show: true
+	                }
+	            },
+	            itemStyle: {
+	                normal: {
+	                    color: '#f4e925',
+	                    shadowBlur: 10,
+	                    shadowColor: '#333'
+	                }
+	            },
+	            zlevel: 1,
+	            animationDelayUpdate: function(idx) {
+	                return idx * 100;
+	            }
+	        }
+	    ]
+	};
+if (option && typeof option === "object") {
+    myChart.setOption(option, true);
+}
+	var v = new Vue({
+		created: function() {
+			axios.get('/cityinfo')
+				.then(function(response) {
+					 console.log(response);
+					data = response.data;
+					option.series[0].data = data;
+					option.series[1].data = data.sort(function (a, b) {
+						var numa=null;
+						var numb=null
+						for(var key in a){
+							numa= a[key][2]
+						}
+						for(var key in b){
+							numb= b[key][2]
+						}
+		                return numb - numa;
+		            }).slice(0, 6); 
+					if (option && typeof option === "object") {
+					    myChart.setOption(option, true);
+					}
+				})
+				.catch(function(error) {
+					
+				})
+		}
+	});
+
+       </script>
+</body>
+</html>
